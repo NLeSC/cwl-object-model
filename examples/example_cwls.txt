@@ -1,0 +1,252 @@
+Examples from the CWL User Guide and what they look like with the new object model
+
+1st-tool.cwl
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+baseCommand: echo
+inputs:
+  message:
+    type: string
+    inputBinding:
+      position: 1
+outputs: []
+
+
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+
+inputs:
+  message:
+    type: string
+outputs: []
+
+baseCommand: echo
+arguments: $(inputs.message)
+
+-----------------------------------------------------------
+
+echo-job.yml
+
+message: Hello world!
+
+Unchanged
+
+-----------------------------------------------------------
+
+inp.cwl
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+baseCommand: echo
+inputs:
+  example_flag:
+    type: boolean
+    inputBinding:
+      position: 1
+      prefix: -f
+  example_string:
+    type: string
+    inputBinding:
+      position: 3
+      prefix: --example-string
+  example_int:
+    type: int
+    inputBinding:
+      position: 2
+      prefix: -i
+      separate: false
+  example_file:
+    type: File?
+    inputBinding:
+      prefix: --file=
+      separate: false
+      position: 4
+
+outputs: []
+
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+
+inputs:
+  example_flag:
+    type: boolean
+  example_string:
+    type: string
+  example_int:
+    type: int
+  example_file:
+    type: File?
+
+outputs: []
+
+baseCommand: echo
+arguments:
+    - $(inputs.example_flag ? '-f' : '')
+    - -i $(inputs.example_int)
+    - --example-string $(inputs.example_string)
+    - --file=$(inputs.example_file.path())
+                                                                SUGAR
+-----------------------------------------------------------
+
+example_flag: true
+example_string: hello
+example_int: 42
+example_file:
+  class: File
+  path: whale.txt
+
+
+example_flag: true
+example_string: hello
+example_int: 42
+example_file:
+  class: File
+  location: file://whale.txt                                    SUGAR
+
+-----------------------------------------------------------
+
+tar.cwl
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+baseCommand: [tar, xf]
+inputs:
+  tarfile:
+    type: File
+    inputBinding:
+      position: 1
+outputs:
+  example_out:
+    type: File
+    outputBinding:
+      glob: hello.txt
+
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+inputs:
+  tarfile:
+    type: File
+outputs:
+  example_out:
+    type: File
+
+baseCommand: tar
+arguments: xf $(inputs.tarfile.path())
+results:
+  example_out:
+    patterns: hello.txt                                         SUGAR
+
+-----------------------------------------------------------
+
+tar-job.yml
+
+tarfile:
+    class: File
+    path: hello.tar
+
+
+tarfile:
+    location: file://hello.tar
+                                                                SUGAR
+-----------------------------------------------------------
+
+stdout.cwl
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+baseCommand: echo
+stdout: output.txt
+inputs:
+  message:
+    type: string
+    inputBinding:
+      position: 1
+outputs:
+  output:
+    type: stdout
+
+
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+inputs:
+  message:
+    type: string                                                SUGAR
+outputs:
+  output:
+    type: File
+
+baseCommand: echo
+arguments: $(inputs.message)                                    SUGAR
+results:
+  output: $(stdout)
+
+-----------------------------------------------------------
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+baseCommand: [tar, xf]
+inputs:
+  tarfile:
+    type: File
+    inputBinding:
+      position: 1
+  extractfile:
+    type: string
+    inputBinding:
+      position: 2
+outputs:
+  example_out:
+    type: File
+    outputBinding:
+      glob: $(inputs.extractfile)
+
+
+
+#!/usr/bin/env cwl-runner
+
+cwlVersion: v1.0
+class: CommandLineTool
+
+inputs:
+  tarfile:
+    type: File
+  extractfile:
+    type: string
+
+outputs:
+  example_out:
+    type: File
+
+baseCommand: tar
+arguments: xf $(inputs.tarfile) $(inputs.extractfile)               SUGAR
+results:
+  example_out:
+    patterns: $(inputs.extractfile)
+
+
+
+
+
+
